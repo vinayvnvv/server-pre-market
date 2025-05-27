@@ -2,7 +2,7 @@ name: Daily Socket Task
 
 on:
   schedule:
-    - cron: "45 20 * * *" # Runs at 9:00 AM UTC daily
+    - cron: "17 15 * * *" # Runs at 9:00 AM UTC daily
   workflow_dispatch: # Allow manual run too
 
 jobs:
