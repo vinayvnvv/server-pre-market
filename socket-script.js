@@ -4,7 +4,7 @@ function main() {
   const interval = setInterval(() => {
     i++;
     console.log("call", i, new Date().getHours(), new Date().getMinutes());
-    if (i === 50) {
+    if (i === 400) {
       clearInterval(interval);
       process.exit();
     }
