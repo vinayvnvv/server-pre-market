@@ -1,6 +1,11 @@
-{
+{ 
+  "name": "daily-socket-task",
+  "version": "1.0.0",
+  "main": "socket-script.js",
+  "scripts": {
+    "start": "node socket-script.js"
+  },
   "dependencies": {
-    "fyers-api-v3": "^1.4.1",
-    "node-cron": "^4.0.6"
+    "fyers-api-v3": "^1.4.1"
   }
 }
