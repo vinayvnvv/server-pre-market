@@ -3,7 +3,7 @@ function main() {
   let i = 0;
   const interval = setInterval(() => {
     i++;
-    console.log("call", i);
+    console.log("call", i, new Date().getHours(), new Date().getMinutes());
     if (i === 50) {
       clearInterval(interval);
       process.exit();
