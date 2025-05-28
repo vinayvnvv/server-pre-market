@@ -1,6 +1,10 @@
 const { getRefreshToken } = require("./firebase");
 const connect = require("./socket");
 const { sha256 } = require("js-sha256");
+const nDate = new Date().toLocaleString("en-US", {
+  timeZone: "Asia/Calcutta",
+});
+console.log(nDate);
 
 const access = async (refresh_token) => {
   try {

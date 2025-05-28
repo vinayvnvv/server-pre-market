@@ -4,14 +4,20 @@ const FyersSocket = require("fyers-api-v3").fyersDataSocket;
 
 const isEnd = () => {
   const now = new Date();
-  const hours = now.getUTCHours();
-  const minutes = now.getUTCMinutes();
-  console.log(now, hours, minutes);
-  if (hours === 11 && minutes === 0) {
-    return true;
-  } else {
-    return false;
-  }
+
+  // Create a formatter for the Kolkata timezone
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Kolkata",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false, // use 24-hour format
+  });
+
+  const [hourStr, minuteStr] = formatter.format(now).split(":");
+  const hour = parseInt(hourStr, 10);
+  const minute = parseInt(minuteStr, 10);
+
+  return hour === 11 && minute === 6;
 };
 
 // const fyers_token =
