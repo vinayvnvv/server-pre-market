@@ -1,11 +1,1 @@
-{ 
-  "name": "daily-socket-task",
-  "version": "1.0.0",
-  "main": "socket-script.js",
-  "scripts": {
-    "start": "node socket-script.js"
-  },
-  "dependencies": {
-    "fyers-api-v3": "^1.4.1"
-  }
-}
+{"name":"daily-socket-task","version":"1.0.0","main":"socket-script.js","scripts":{"start":"node socket-script.js"},"dependencies":{"firebase":"^11.8.1","fyers-api-v3":"^1.4.1","js-sha256":"^0.11.1"}}
