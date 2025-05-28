@@ -4,7 +4,7 @@ const isEnd = () => {
   const now = new Date();
   const hours = now.getUTCHours();
   const minutes = now.getUTCMinutes();
-  if (hours === 9 && minutes === 9) {
+  if (hours === 9 && minutes === 18) {
     return true;
   } else {
     return false;
@@ -16,10 +16,25 @@ const fyers_token =
 
 function connect() {
   var fyersdata = new FyersSocket(fyers_token);
-  function onmsg(message) {
-    console.log("connnected", message);
+  let high = 0,
+    low = 0,
+    ltp = 0;
+  var interval = setInterval(() => {
+    console.log("running", ltp);
     if (isEnd()) {
+      console.log("end", high, low, ltp);
+      clearInterval(interval);
       process.exit();
+    }
+  }, 4000);
+  function onmsg(message) {
+    const { ltp: _ltp } = message || {};
+    if (_ltp) {
+      if (high === 0) high = _ltp;
+      if (low === 0) low = _ltp;
+      if (_ltp > high) high = _ltp;
+      if (_ltp < low) low = _ltp;
+      ltp = _ltp;
     }
   }
 
