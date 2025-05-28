@@ -1,0 +1,9 @@
+{"level":"debug","datetime":"2025-05-28T03:31:41.085Z","message":"HSM raw data","data":[{"stat":"Ok","type":"cn","msg":"successful","stCode":200}],"functionName":"conversion"}
+{"level":"debug","datetime":"2025-05-28T03:31:41.324Z","message":"HSM raw data","data":[{"stat":"Ok","type":"lit","msg":"successful","stCode":200}],"functionName":"conversion"}
+{"level":"debug","datetime":"2025-05-28T03:31:41.324Z","message":"HSM raw data","data":[{"stat":"Ok","type":"sub","msg":"successful","stCode":200}],"functionName":"conversion"}
+{"level":"debug","datetime":"2025-05-28T03:31:41.326Z","message":"HSM raw data","data":[{"iv":24780.2,"ic":24826.2,"tvalue":1748403100,"highPrice":0,"lowPrice":0,"openingPrice":0,"cng":-46,"nc":-0.19,"ts":"Nifty 50","name":"if","tk":"Nifty 50","e":"nse_cm"}],"functionName":"conversion"}
+{"level":"debug","datetime":"2025-05-28T03:31:41.325Z","message":"HSM raw data","data":[{"stat":"Ok","type":"cr","msg":"successful","stCode":200}],"functionName":"conversion"}
+{"level":"debug","datetime":"2025-05-28T03:31:41.324Z","message":"HSM raw data","data":[{"stat":"Ok","type":"cp","msg":"successful","stCode":200}],"functionName":"conversion"}
+{"level":"debug","datetime":"2025-05-28T03:31:42.942Z","message":"HSM raw data","data":[{"iv":24780.65,"cng":-45.55,"nc":-0.18,"name":"if","tk":"Nifty 50","e":"nse_cm"}],"functionName":"conversion"}
+{"level":"debug","datetime":"2025-05-28T03:31:43.337Z","message":"HSM raw data","data":[{"iv":24781,"cng":-45.2,"nc":-0.18,"name":"if","tk":"Nifty 50","e":"nse_cm"}],"functionName":"conversion"}
+{"level":"debug","datetime":"2025-05-28T03:31:44.096Z","message":"HSM raw data","data":[{"iv":24780.9,"cng":-45.3,"nc":-0.18,"name":"if","tk":"Nifty 50","e":"nse_cm"}],"functionName":"conversion"}

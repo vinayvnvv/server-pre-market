@@ -1,5 +1,15 @@
-const cron = require("node-cron");
 const FyersSocket = require("fyers-api-v3").fyersDataSocket;
+
+const isEnd = () => {
+  const now = new Date();
+  const hours = now.getUTCHours();
+  const minutes = now.getUTCMinutes();
+  if (hours === 9 && minutes === 9) {
+    return true;
+  } else {
+    return false;
+  }
+};
 
 const fyers_token =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiZDoxIiwiZDoyIiwieDowIiwieDoxIiwieDoyIl0sImF0X2hhc2giOiJnQUFBQUFCb05vSVVSTzhjM1VEWi1idVF0aU1LcjdrUV9NLWtjVHlvQl9halQ0Zm5VbEpEZ1ZWWXMteW5TcGNqUWxNRXdfSVFETk1WdVJEc015SnExX1djeWZMeHJkMVFvZEYzTXY5REZ6QmJLQ2pxQ3BxblJsVT0iLCJkaXNwbGF5X25hbWUiOiIiLCJvbXMiOiJLMSIsImhzbV9rZXkiOiIzNjJlN2NiZWM5YmIxMGIxZWZhODZjY2FjYjQ3Zjk0MzM1M2U1YzJiNDNhNGRiYzc0MjdmY2JiZSIsImlzRGRwaUVuYWJsZWQiOiJOIiwiaXNNdGZFbmFibGVkIjoiTiIsImZ5X2lkIjoiWEIwOTAzNyIsImFwcFR5cGUiOjEwMCwiZXhwIjoxNzQ4NDc4NjAwLCJpYXQiOjE3NDg0MDI3MDgsImlzcyI6ImFwaS5meWVycy5pbiIsIm5iZiI6MTc0ODQwMjcwOCwic3ViIjoiYWNjZXNzX3Rva2VuIn0.laxxeD3XoQd-xPbjEDSToF5stFnsbuz0zQdVik4F_fc";
@@ -8,6 +18,9 @@ function connect() {
   var fyersdata = new FyersSocket(fyers_token);
   function onmsg(message) {
     console.log("connnected", message);
+    if (isEnd()) {
+      process.exit();
+    }
   }
 
   function onconnect() {
@@ -32,7 +45,4 @@ function connect() {
   fyersdata.connect();
 }
 
-cron.schedule("30 8 * * *", () => {
-  // connect();
-  console.log("running a task every minute");
-});
+module.exports = connect;
