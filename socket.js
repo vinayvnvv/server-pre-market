@@ -26,19 +26,27 @@ const isEnd = () => {
 function connect(fyers_token) {
   var fyersdata = new FyersSocket(fyers_token);
   let high = 0,
+    start = 0,
+    startInit = false,
     low = 0,
     ltp = 0;
   var interval = setInterval(async () => {
     console.log("running", ltp);
+    if (start !== 0) startInit = true;
     if (isEnd()) {
       console.log("end", high, low, ltp);
-      await updateMarketData({ high, low, ltp });
+      await updateMarketData({ high, low, ltp, start });
       clearInterval(interval);
       process.exit();
     }
   }, 4000);
   function onmsg(message) {
     const { ltp: _ltp } = message || {};
+    if (start === 0) start = _ltp;
+    if (startInit) {
+      startInit = false;
+      start = _ltp;
+    }
     if (_ltp) {
       if (high === 0) high = _ltp;
       if (low === 0) low = _ltp;
