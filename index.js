@@ -32,7 +32,7 @@ function connect() {
   fyersdata.connect();
 }
 
-cron.schedule("30 8 * * *", () => {
+cron.schedule("58 8 * * 1-5", () => {
   // connect();
   console.log("running a task every minute");
 });

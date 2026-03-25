@@ -1,5 +1,5 @@
 // Import the functions you need from the SDKs you need
-const { initializeApp } = require("firebase/app");
+const { initializeApp, getApps, getApp } = require("firebase/app");
 const {
   getFirestore,
   collection,
@@ -29,12 +29,30 @@ const firebaseConfig = {
   measurementId: "G-4Z80XD30JL",
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+const firebaseConfigCandles = {
+  apiKey: "AIzaSyARSxjNxLc_Z5Znb3QmLGLqdRzQnzqNEZk",
+  authDomain: "punaro-13d3f.firebaseapp.com",
+  projectId: "punaro-13d3f",
+  storageBucket: "punaro-13d3f.firebasestorage.app",
+  messagingSenderId: "730341124995",
+  appId: "1:730341124995:web:241cc76d9f1d666d2164b6",
+  measurementId: "G-X2ZWTMZFCH",
+};
+
+// Initialize Firebase safely (avoid duplicate-app on hot reload / multiple imports)
+const app = getApps().some((a) => a.name === "[DEFAULT]")
+  ? getApp()
+  : initializeApp(firebaseConfig);
 const preMarketCollectionName = "pre-market";
 const db = getFirestore(app);
 const userCollection = collection(db, "users");
 const marketCollection = collection(db, preMarketCollectionName);
+
+const appCandles = getApps().some((a) => a.name === "candles")
+  ? getApp("candles")
+  : initializeApp(firebaseConfigCandles, "candles");
+const dbCandles = getFirestore(appCandles);
+const minuteCandlesCollectionName = "pre-market-candles";
 
 function formatDateMMDDYYYY() {
   const date = new Date();
@@ -55,6 +73,20 @@ const updateMarketData = (data) => {
     return setDoc(doc(db, preMarketCollectionName, formatDateMMDDYYYY()), data);
   } catch (err) {
     console.log(err);
+  }
+};
+
+// Persist 1-minute OHLC candles under:
+// pre-market/<MM-DD-YYYY>/minuteCandles/<symbol>_<minuteKey>
+const saveMinuteCandles = async (candles) => {
+  if (candles.length === 0) return;
+  try {
+    return setDoc(
+      doc(dbCandles, minuteCandlesCollectionName, formatDateMMDDYYYY()),
+      { candles },
+    );
+  } catch (err) {
+    console.log("eeeee", err);
   }
 };
 
@@ -89,6 +121,6 @@ const updateMarketData = (data) => {
 //   );
 //   return getDocs(q);
 // };
-const modules = { getRefreshToken, updateMarketData };
+const modules = { getRefreshToken, updateMarketData, saveMinuteCandles };
 
 module.exports = modules;

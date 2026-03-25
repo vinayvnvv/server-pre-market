@@ -1,4 +1,4 @@
-const { updateMarketData } = require("./firebase");
+const { updateMarketData, saveMinuteCandles } = require("./firebase");
 
 const FyersSocket = require("fyers-api-v3").fyersDataSocket;
 
@@ -30,24 +30,127 @@ function connect(fyers_token) {
     startInit = false,
     low = 0,
     ltp = 0;
+  const candles = [];
+  const currentCandlesBySymbol = new Map();
+
+  const asiaMinuteFormatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Kolkata",
+    hour12: false,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  const normalizeTsToMs = (ts) => {
+    const n = typeof ts === "string" ? Number(ts) : ts;
+    if (!Number.isFinite(n)) return null;
+    // Heuristic: seconds are ~1e9-1e10; ms are ~1e12+
+    return n < 1e12 ? n * 1000 : n;
+  };
+
+  const getMinuteKey = (tsMs) => {
+    const d = new Date(tsMs);
+    const parts = asiaMinuteFormatter.formatToParts(d);
+    const pick = (type) => parts.find((p) => p.type === type)?.value;
+    // Example: "2026-03-25 09:17"
+    return `${pick("year")}-${pick("month")}-${pick("day")} ${pick(
+      "hour",
+    )}:${pick("minute")}`;
+  };
+
+  /** Epoch ms for the start of that minute in Asia/Kolkata (e.g. 9:15:00.000 IST). */
+  const getMinuteStartMs = (tsMs) => {
+    const d = new Date(tsMs);
+    const parts = asiaMinuteFormatter.formatToParts(d);
+    const pick = (type) => parts.find((p) => p.type === type)?.value;
+    const y = pick("year");
+    const m = pick("month");
+    const day = pick("day");
+    const h = pick("hour");
+    const min = pick("minute");
+    return new Date(`${y}-${m}-${day}T${h}:${min}:00+05:30`).getTime();
+  };
+
+  const flushCurrentCandles = () => {
+    for (const candle of currentCandlesBySymbol.values()) candles.push(candle);
+    currentCandlesBySymbol.clear();
+  };
+
   var interval = setInterval(async () => {
     console.log("running", ltp);
+    console.log("candles", candles);
+    saveMinuteCandles(candles);
     if (start !== 0) startInit = true;
     if (isEnd()) {
       console.log("end", high, low, ltp);
+      flushCurrentCandles();
       await updateMarketData({ high, low, ltp, start });
+      await saveMinuteCandles(candles);
       clearInterval(interval);
       process.exit();
     }
   }, 4000);
+
+  const saveCandles = (data) => {
+    const symbol = data?.symbol;
+    const ltpNum = Number(data?.ltp);
+    const tsMs = normalizeTsToMs(data?.exch_feed_time);
+    if (!symbol || !Number.isFinite(ltpNum) || tsMs === null) return;
+
+    const minuteKey = getMinuteKey(tsMs);
+    const time = getMinuteStartMs(tsMs);
+    const existing = currentCandlesBySymbol.get(symbol);
+
+    if (!existing) {
+      currentCandlesBySymbol.set(symbol, {
+        symbol,
+        minuteKey,
+        time,
+        open: ltpNum,
+        high: ltpNum,
+        low: ltpNum,
+        close: ltpNum,
+        openTs: tsMs,
+        closeTs: tsMs,
+      });
+      return;
+    }
+
+    // Minute boundary detected -> finalize previous candle and start new one
+    if (existing.minuteKey !== minuteKey) {
+      candles.push(existing);
+      currentCandlesBySymbol.set(symbol, {
+        symbol,
+        minuteKey,
+        time,
+        open: ltpNum,
+        high: ltpNum,
+        low: ltpNum,
+        close: ltpNum,
+        openTs: tsMs,
+        closeTs: tsMs,
+      });
+      return;
+    }
+
+    existing.high = Math.max(existing.high, ltpNum);
+    existing.low = Math.min(existing.low, ltpNum);
+    existing.close = ltpNum;
+    existing.closeTs = tsMs;
+  };
   function onmsg(message) {
-    const { ltp: _ltp } = message || {};
-    if (start === 0) start = _ltp;
+    // console.log("message", message);
+    saveCandles(message);
+    const { ltp: _ltpRaw } = message || {};
+    const _ltp = Number(_ltpRaw);
+    if (start === 0 && _ltp) start = _ltp;
     if (startInit) {
       startInit = false;
-      start = _ltp;
+      if (_ltp) start = _ltp;
     }
-    if (_ltp) {
+    if (Number.isFinite(_ltp) && _ltp) {
       if (high === 0) high = _ltp;
       if (low === 0) low = _ltp;
       if (_ltp > high) high = _ltp;
@@ -59,7 +162,7 @@ function connect(fyers_token) {
   function onconnect() {
     console.log("connected socket");
     fyersdata.subscribe(["NSE:NIFTY50-INDEX"]); //not subscribing for market depth data
-    fyersdata.mode(fyersdata.LiteMode); //set data mode to lite mode
+    // fyersdata.mode(fyersdata.LiteMode); //set data mode to lite mode
     fyersdata.autoreconnect(); //enable auto reconnection mechanism in case of disconnection
   }
 
