@@ -19,7 +19,7 @@ const access = async (refresh_token) => {
           grant_type: "refresh_token",
           appIdHash: sha256(`${"GIY41IH4EM-100"}:${"VWQJ5BGDY3"}`),
           refresh_token: refresh_token,
-          pin: "1994",
+          pin: "8197",
         }),
       }
     );
