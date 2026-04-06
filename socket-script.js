@@ -1,4 +1,4 @@
-const { getRefreshToken } = require("./firebase");
+const { getAccessToken } = require("./firebase");
 const connect = require("./socket");
 const { sha256 } = require("js-sha256");
 const nDate = new Date().toLocaleString("en-US", {
@@ -6,57 +6,27 @@ const nDate = new Date().toLocaleString("en-US", {
 });
 console.log(nDate);
 
-const access = async (refresh_token) => {
+const access = async () => {
   try {
-    let res = await fetch(
-      "https://api-t1.fyers.in/api/v3/validate-refresh-token",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          grant_type: "refresh_token",
-          appIdHash: sha256(`${"GIY41IH4EM-100"}:${"VWQJ5BGDY3"}`),
-          refresh_token: refresh_token,
-          pin: "8197",
-        }),
-      }
-    );
-    res = await res.json();
-    console.log(res);
-    if (res.code === 200) {
-      return res.access_token;
-    } else {
-      return false;
-    }
-  } catch (err) {
-    console.log(err);
-    return false;
-  }
-};
-
-const refresh = async () => {
-  try {
-    const r = await getRefreshToken();
+    const r = await getAccessToken();
     const data = r.data();
-    if (data) {
+    if (data && data.access_token) {
       console.log(data);
-      return data;
+      return data.access_token;
     } else return false;
   } catch (err) {
-    console.log(err);
+    console.log("ss", err);
     return false;
   }
 };
 
 async function main() {
-  const token = await refresh();
-  if (!token) {
-    console.log("failed to fetch refreshtoken from firebase");
-    process.exit();
-  }
-  const accessToken = await access(token.refresh);
+  // const token = await refresh();
+  // if (!token) {
+  //   console.log("failed to fetch refreshtoken from firebase");
+  //   process.exit();
+  // }
+  const accessToken = await access();
   if (!accessToken) {
     console.log("failed to fetch access token  from fyers");
     process.exit();

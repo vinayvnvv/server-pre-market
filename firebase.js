@@ -68,6 +68,10 @@ const getRefreshToken = () => {
   return getDoc(queryD);
 };
 
+const getAccessToken = () => {
+  const queryD = doc(db, `fyers-token/token`);
+  return getDoc(queryD);
+};
 const updateMarketData = (data) => {
   try {
     return setDoc(doc(db, preMarketCollectionName, formatDateMMDDYYYY()), data);
@@ -121,6 +125,11 @@ const saveMinuteCandles = async (candles) => {
 //   );
 //   return getDocs(q);
 // };
-const modules = { getRefreshToken, updateMarketData, saveMinuteCandles };
+const modules = {
+  getRefreshToken,
+  getAccessToken,
+  updateMarketData,
+  saveMinuteCandles,
+};
 
 module.exports = modules;
