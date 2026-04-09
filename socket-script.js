@@ -10,9 +10,9 @@ const access = async () => {
   try {
     const r = await getAccessToken();
     const data = r.data();
-    if (data && data.access_token) {
+    if (data && data.token) {
       console.log(data);
-      return data.access_token;
+      return data.token;
     } else return false;
   } catch (err) {
     console.log("ss", err);

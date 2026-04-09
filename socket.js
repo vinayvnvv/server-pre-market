@@ -1,6 +1,8 @@
 const { updateMarketData, saveMinuteCandles } = require("./firebase");
 
-const FyersSocket = require("fyers-api-v3").fyersDataSocket;
+var UpstoxClient = require("upstox-js-sdk");
+var defaultClient = UpstoxClient.ApiClient.instance;
+var OAUTH2 = defaultClient.authentications["OAUTH2"];
 
 const isEnd = () => {
   const now = new Date();
@@ -17,14 +19,18 @@ const isEnd = () => {
   const hour = parseInt(hourStr, 10);
   const minute = parseInt(minuteStr, 10);
 
-  return hour === 9 && minute === 8;
+  return hour === 10 && minute === 8;
 };
 
 // const fyers_token =
 //   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiZDoxIiwiZDoyIiwieDowIiwieDoxIiwieDoyIl0sImF0X2hhc2giOiJnQUFBQUFCb05vSVVSTzhjM1VEWi1idVF0aU1LcjdrUV9NLWtjVHlvQl9halQ0Zm5VbEpEZ1ZWWXMteW5TcGNqUWxNRXdfSVFETk1WdVJEc015SnExX1djeWZMeHJkMVFvZEYzTXY5REZ6QmJLQ2pxQ3BxblJsVT0iLCJkaXNwbGF5X25hbWUiOiIiLCJvbXMiOiJLMSIsImhzbV9rZXkiOiIzNjJlN2NiZWM5YmIxMGIxZWZhODZjY2FjYjQ3Zjk0MzM1M2U1YzJiNDNhNGRiYzc0MjdmY2JiZSIsImlzRGRwaUVuYWJsZWQiOiJOIiwiaXNNdGZFbmFibGVkIjoiTiIsImZ5X2lkIjoiWEIwOTAzNyIsImFwcFR5cGUiOjEwMCwiZXhwIjoxNzQ4NDc4NjAwLCJpYXQiOjE3NDg0MDI3MDgsImlzcyI6ImFwaS5meWVycy5pbiIsIm5iZiI6MTc0ODQwMjcwOCwic3ViIjoiYWNjZXNzX3Rva2VuIn0.laxxeD3XoQd-xPbjEDSToF5stFnsbuz0zQdVik4F_fc";
 
-function connect(fyers_token) {
-  var fyersdata = new FyersSocket(fyers_token);
+function connect(upstox_token) {
+  OAUTH2.accessToken = upstox_token;
+  const streamer = new UpstoxClient.MarketDataStreamerV3(
+    ["NSE_INDEX|Nifty 50"],
+    "ltpc",
+  );
   let high = 0,
     start = 0,
     startInit = false,
@@ -84,10 +90,10 @@ function connect(fyers_token) {
     saveMinuteCandles(candles);
     if (start !== 0) startInit = true;
     if (isEnd()) {
-      console.log("end", high, low, ltp);
+      console.log("end", high, low, ltp, candles);
       flushCurrentCandles();
-      await updateMarketData({ high, low, ltp, start });
-      await saveMinuteCandles(candles);
+      // await updateMarketData({ high, low, ltp, start });
+      // await saveMinuteCandles(candles);
       clearInterval(interval);
       process.exit();
     }
@@ -96,7 +102,7 @@ function connect(fyers_token) {
   const saveCandles = (data) => {
     const symbol = data?.symbol;
     const ltpNum = Number(data?.ltp);
-    const tsMs = normalizeTsToMs(data?.exch_feed_time);
+    const tsMs = data?.exch_feed_time;
     if (!symbol || !Number.isFinite(ltpNum) || tsMs === null) return;
 
     const minuteKey = getMinuteKey(tsMs);
@@ -159,27 +165,19 @@ function connect(fyers_token) {
     }
   }
 
-  function onconnect() {
-    console.log("connected socket");
-    fyersdata.subscribe(["NSE:NIFTY50-INDEX"]); //not subscribing for market depth data
-    // fyersdata.mode(fyersdata.LiteMode); //set data mode to lite mode
-    fyersdata.autoreconnect(); //enable auto reconnection mechanism in case of disconnection
-  }
+  streamer.connect();
 
-  function onerror(err) {
-    console.log("socket err", err);
-  }
-
-  function onclose() {
-    console.log("socket closed");
-  }
-
-  fyersdata.on("message", onmsg);
-  fyersdata.on("connect", onconnect);
-  fyersdata.on("error", onerror);
-  fyersdata.on("close", onclose);
-
-  fyersdata.connect();
+  streamer.on("message", (data) => {
+    const feed = data.toString("utf-8");
+    const _feed = JSON.parse(feed)?.feeds?.["NSE_INDEX|Nifty 50"]?.ltpc;
+    if (_feed) {
+      onmsg({
+        exch_feed_time: Number(_feed.ltt),
+        ltp: _feed.ltp,
+        symbol: "NSE_INDEX|Nifty 50",
+      });
+    }
+  });
 }
 
 module.exports = connect;

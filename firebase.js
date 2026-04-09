@@ -69,7 +69,7 @@ const getRefreshToken = () => {
 };
 
 const getAccessToken = () => {
-  const queryD = doc(db, `fyers-token/token`);
+  const queryD = doc(db, `upstox-token/analytics`);
   return getDoc(queryD);
 };
 const updateMarketData = (data) => {
