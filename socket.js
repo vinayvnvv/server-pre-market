@@ -19,7 +19,7 @@ const isEnd = () => {
   const hour = parseInt(hourStr, 10);
   const minute = parseInt(minuteStr, 10);
 
-  return hour === 10 && minute === 8;
+  return hour === 9 && minute === 8;
 };
 
 // const fyers_token =
